@@ -28,7 +28,6 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity)
                 }
             }
-            .navigationTitle("Sudoku")
             .background(Color.secondary.opacity(0.08))
             .alert("Puzzle Solved", isPresented: $showSolvedAlert) {
                 Button("New Game") {
@@ -283,7 +282,7 @@ private struct SudokuGame {
     }
 
     static func sample() -> SudokuGame {
-        SudokuGame(puzzle: SudokuPuzzle.samples.randomElement() ?? SudokuPuzzle.samples[0])
+        SudokuGame(puzzle: SudokuPuzzle.generate())
     }
 }
 
@@ -298,84 +297,139 @@ private struct SudokuPuzzle {
         case hard = "Hard"
     }
 
-    static let samples: [SudokuPuzzle] = [
-        SudokuPuzzle(
-            difficulty: .easy,
-            grid: [
-                [5, 3, 0, 0, 7, 0, 0, 0, 0],
-                [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                [0, 9, 8, 0, 0, 0, 0, 6, 0],
-                [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                [4, 0, 0, 8, 0, 3, 0, 0, 1],
-                [7, 0, 0, 0, 2, 0, 0, 0, 6],
-                [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                [0, 0, 0, 0, 8, 0, 0, 7, 9]
-            ],
-            solution: [
-                [5, 3, 4, 6, 7, 8, 9, 1, 2],
-                [6, 7, 2, 1, 9, 5, 3, 4, 8],
-                [1, 9, 8, 3, 4, 2, 5, 6, 7],
-                [8, 5, 9, 7, 6, 1, 4, 2, 3],
-                [4, 2, 6, 8, 5, 3, 7, 9, 1],
-                [7, 1, 3, 9, 2, 4, 8, 5, 6],
-                [9, 6, 1, 5, 3, 7, 2, 8, 4],
-                [2, 8, 7, 4, 1, 9, 6, 3, 5],
-                [3, 4, 5, 2, 8, 6, 1, 7, 9]
-            ]
-        ),
-        SudokuPuzzle(
-            difficulty: .medium,
-            grid: [
-                [0, 2, 0, 6, 0, 8, 0, 0, 0],
-                [5, 8, 0, 0, 0, 9, 7, 0, 0],
-                [0, 0, 0, 0, 4, 0, 0, 0, 0],
-                [3, 7, 0, 0, 0, 0, 5, 0, 0],
-                [6, 0, 0, 0, 0, 0, 0, 0, 4],
-                [0, 0, 8, 0, 0, 0, 0, 1, 3],
-                [0, 0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 9, 8, 0, 0, 0, 3, 6],
-                [0, 0, 0, 3, 0, 6, 0, 9, 0]
-            ],
-            solution: [
-                [1, 2, 3, 6, 7, 8, 9, 4, 5],
-                [5, 8, 4, 2, 3, 9, 7, 6, 1],
-                [9, 6, 7, 1, 4, 5, 3, 2, 8],
-                [3, 7, 2, 4, 6, 1, 5, 8, 9],
-                [6, 9, 1, 5, 8, 3, 2, 7, 4],
-                [4, 5, 8, 7, 9, 2, 6, 1, 3],
-                [8, 3, 6, 9, 2, 4, 1, 5, 7],
-                [2, 1, 9, 8, 5, 7, 4, 3, 6],
-                [7, 4, 5, 3, 1, 6, 8, 9, 2]
-            ]
-        ),
-        SudokuPuzzle(
-            difficulty: .hard,
-            grid: [
-                [0, 0, 0, 0, 0, 0, 2, 0, 0],
-                [0, 8, 0, 0, 0, 7, 0, 9, 0],
-                [6, 0, 2, 0, 0, 0, 5, 0, 0],
-                [0, 7, 0, 0, 6, 0, 0, 0, 0],
-                [0, 0, 0, 9, 0, 1, 0, 0, 0],
-                [0, 0, 0, 0, 2, 0, 0, 4, 0],
-                [0, 0, 5, 0, 0, 0, 6, 0, 3],
-                [0, 9, 0, 4, 0, 0, 0, 7, 0],
-                [0, 0, 6, 0, 0, 0, 0, 0, 0]
-            ],
-            solution: [
-                [9, 5, 7, 6, 1, 3, 2, 8, 4],
-                [4, 8, 3, 2, 5, 7, 1, 9, 6],
-                [6, 1, 2, 8, 4, 9, 5, 3, 7],
-                [1, 7, 8, 3, 6, 4, 9, 5, 2],
-                [5, 2, 4, 9, 7, 1, 3, 6, 8],
-                [3, 6, 9, 5, 2, 8, 7, 4, 1],
-                [8, 4, 5, 7, 9, 2, 6, 1, 3],
-                [2, 9, 1, 4, 3, 6, 8, 7, 5],
-                [7, 3, 6, 1, 8, 5, 4, 2, 9]
-            ]
-        )
+    private static let difficultyClues: [Difficulty: Int] = [
+        .easy: 40,
+        .medium: 32,
+        .hard: 26
     ]
+
+    static func generate() -> SudokuPuzzle {
+        let difficulty = Difficulty.allCases.randomElement() ?? .medium
+        let solution = shuffledSolvedBoard()
+        let clues = difficultyClues[difficulty] ?? 32
+        let grid = puzzleGrid(from: solution, clues: clues)
+        return SudokuPuzzle(difficulty: difficulty, grid: grid, solution: solution)
+    }
+
+    private static func shuffledSolvedBoard() -> [[Int]] {
+        let base = 3
+        let side = base * base
+
+        func pattern(_ row: Int, _ column: Int) -> Int {
+            (base * (row % base) + row / base + column) % side
+        }
+
+        func shuffledGroups() -> [Int] {
+            Array(0..<base).shuffled()
+        }
+
+        let rows = shuffledGroups().flatMap { group in
+            Array((group * base)..<(group * base + base)).shuffled()
+        }
+        let columns = shuffledGroups().flatMap { group in
+            Array((group * base)..<(group * base + base)).shuffled()
+        }
+        let numbers = Array(1...side).shuffled()
+
+        return rows.map { row in
+            columns.map { column in
+                numbers[pattern(row, column)]
+            }
+        }
+    }
+
+    private static func puzzleGrid(from solution: [[Int]], clues: Int) -> [[Int]] {
+        var puzzle = solution
+        var positions = Array(0..<81).shuffled()
+        let removalsTarget = max(0, 81 - clues)
+        var removed = 0
+
+        while removed < removalsTarget, let index = positions.popLast() {
+            let row = index / 9
+            let column = index % 9
+            let previous = puzzle[row][column]
+            puzzle[row][column] = 0
+
+            var candidate = puzzle
+            var solutionCount = 0
+            solve(&candidate, solutionCount: &solutionCount, limit: 2)
+
+            if solutionCount == 1 {
+                removed += 1
+            } else {
+                puzzle[row][column] = previous
+            }
+        }
+
+        return puzzle
+    }
+
+    private static func solve(_ board: inout [[Int]], solutionCount: inout Int, limit: Int) {
+        guard solutionCount < limit else { return }
+
+        guard let cell = nextEmptyCell(in: board) else {
+            solutionCount += 1
+            return
+        }
+
+        for value in Array(1...9).shuffled() where isValid(value, atRow: cell.row, column: cell.column, in: board) {
+            board[cell.row][cell.column] = value
+            solve(&board, solutionCount: &solutionCount, limit: limit)
+            board[cell.row][cell.column] = 0
+
+            if solutionCount >= limit {
+                return
+            }
+        }
+    }
+
+    private static func nextEmptyCell(in board: [[Int]]) -> CellPosition? {
+        var bestCell: CellPosition?
+        var bestCandidateCount = Int.max
+
+        for row in 0..<9 {
+            for column in 0..<9 where board[row][column] == 0 {
+                let candidateCount = validValues(forRow: row, column: column, in: board).count
+
+                if candidateCount < bestCandidateCount {
+                    bestCandidateCount = candidateCount
+                    bestCell = CellPosition(row: row, column: column)
+                }
+
+                if candidateCount == 1 {
+                    return bestCell
+                }
+            }
+        }
+
+        return bestCell
+    }
+
+    private static func validValues(forRow row: Int, column: Int, in board: [[Int]]) -> [Int] {
+        Array(1...9).filter { isValid($0, atRow: row, column: column, in: board) }
+    }
+
+    private static func isValid(_ value: Int, atRow row: Int, column: Int, in board: [[Int]]) -> Bool {
+        let boxRow = (row / 3) * 3
+        let boxColumn = (column / 3) * 3
+
+        for index in 0..<9 {
+            if board[row][index] == value || board[index][column] == value {
+                return false
+            }
+        }
+
+        for rowOffset in 0..<3 {
+            for columnOffset in 0..<3 where board[boxRow + rowOffset][boxColumn + columnOffset] == value {
+                return false
+            }
+        }
+
+        return true
+    }
 }
+
+extension SudokuPuzzle.Difficulty: CaseIterable {}
 
 private struct CellPosition: Hashable {
     let row: Int
