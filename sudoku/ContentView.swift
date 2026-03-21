@@ -6,28 +6,38 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var finishedGames: [FinishedGame]
     @State private var game = SudokuGame.sample()
     @State private var selectedCell: CellPosition?
     @State private var showSolvedAlert = false
+    @State private var hasRecordedCompletion = false
+
+    init() {
+        _finishedGames = Query(sort: \FinishedGame.completedAt, order: .reverse)
+    }
 
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
                 let boardSize = min(geometry.size.width - 32, 420.0)
-
+                
                 ScrollView {
                     VStack(spacing: 24) {
                         header
                         board(size: boardSize)
                         controls
                         keypad
+                        completedGamesSection
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity)
                 }
             }
+            .navigationTitle("Sudoku")
             .background(Color.secondary.opacity(0.08))
             .alert("Puzzle Solved", isPresented: $showSolvedAlert) {
                 Button("New Game") {
@@ -97,9 +107,9 @@ struct ContentView: View {
         }
         .frame(width: size, height: size)
         .background(.background)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(Rectangle())
         .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            Rectangle()
                 .stroke(Color.primary.opacity(0.12), lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.08), radius: 16, y: 8)
@@ -120,6 +130,41 @@ struct ContentView: View {
         }
     }
 
+    private var completedGamesSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Completed Games")
+                    .font(.headline)
+
+                Spacer()
+
+                if !finishedGames.isEmpty {
+                    Text("\(finishedGames.count)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if finishedGames.isEmpty {
+                Text("Finished puzzles will appear here.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.background)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(finishedGames.prefix(8)) { finishedGame in
+                        completedGameRow(finishedGame)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: 520, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private var keypad: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
             ForEach(1...9, id: \.self) { number in
@@ -134,6 +179,31 @@ struct ContentView: View {
                 .disabled(!canEditSelection)
             }
         }
+    }
+
+    private func completedGameRow(_ finishedGame: FinishedGame) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(finishedGame.difficulty)
+                    .font(.headline)
+                Text(finishedGame.completedAt, format: .dateTime.month().day().year().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("\(finishedGame.clues) clues")
+                    .font(.subheadline.weight(.medium))
+                Text("\(finishedGame.mistakes) mistake\(finishedGame.mistakes == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(14)
+        .background(.background)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func statCard(title: String, value: String) -> some View {
@@ -176,7 +246,9 @@ struct ContentView: View {
 
         game.place(value, at: selectedCell)
 
-        if game.isSolved {
+        if game.isSolved, !hasRecordedCompletion {
+            saveFinishedGame()
+            hasRecordedCompletion = true
             showSolvedAlert = true
         }
     }
@@ -190,6 +262,23 @@ struct ContentView: View {
         game = SudokuGame.sample()
         selectedCell = nil
         showSolvedAlert = false
+        hasRecordedCompletion = false
+    }
+
+    private func saveFinishedGame() {
+        let finishedGame = FinishedGame(
+            difficulty: game.puzzle.difficulty.rawValue,
+            mistakes: game.mistakes,
+            clues: game.puzzle.clueCount
+        )
+
+        modelContext.insert(finishedGame)
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Failed to save finished game: \(error)")
+        }
     }
 }
 
@@ -290,6 +379,10 @@ private struct SudokuPuzzle {
     let difficulty: Difficulty
     let grid: [[Int]]
     let solution: [[Int]]
+
+    var clueCount: Int {
+        grid.joined().filter { $0 != 0 }.count
+    }
 
     enum Difficulty: String {
         case easy = "Easy"
