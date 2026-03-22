@@ -53,7 +53,6 @@ struct ContentView: View {
                 }
 #endif
             }
-            .navigationTitle("Sudoku")
             .background(Color.secondary.opacity(0.08))
             .alert("Puzzle Solved", isPresented: $showSolvedAlert) {
                 Button("New Game") {
@@ -131,7 +130,7 @@ struct ContentView: View {
     }
 
     private var keypad: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 9), spacing: 4) {
             ForEach(1...9, id: \.self) { number in
                 Button {
                     place(number)
@@ -184,6 +183,7 @@ struct ContentView: View {
         game.clear(at: selectedCell)
     }
 
+#if os(macOS)
     private func moveSelection(_ direction: MoveCommandDirection) {
         let current = selectedCell ?? CellPosition(row: 0, column: 0)
 
@@ -200,6 +200,7 @@ struct ContentView: View {
             break
         }
     }
+#endif
 
     private func startNewGame() {
         game = SudokuGame.sample()
