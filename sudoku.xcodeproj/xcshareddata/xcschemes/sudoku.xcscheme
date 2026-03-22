@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "0AC245502F6EC6BE008A716E"
-               BuildableName = "sudoku.app"
+               BuildableName = "Simple Sudoku - Puzzle Game.app"
                BlueprintName = "sudoku"
                ReferencedContainer = "container:sudoku.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0AC245502F6EC6BE008A716E"
-            BuildableName = "sudoku.app"
+            BuildableName = "Simple Sudoku - Puzzle Game.app"
             BlueprintName = "sudoku"
             ReferencedContainer = "container:sudoku.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "0AC245502F6EC6BE008A716E"
-            BuildableName = "sudoku.app"
+            BuildableName = "Simple Sudoku - Puzzle Game.app"
             BlueprintName = "sudoku"
             ReferencedContainer = "container:sudoku.xcodeproj">
          </BuildableReference>
